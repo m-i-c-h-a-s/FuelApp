@@ -16,12 +16,17 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.text.TextBlock;
+import com.google.android.gms.vision.text.TextRecognizer;
 import com.mp.fuelapp.db.DatabaseHelper;
 
 import java.io.ByteArrayOutputStream;
@@ -36,8 +41,10 @@ public class AddActivity extends AppCompatActivity {
     Uri image_uri;
 
     EditText fuelAmountInput, totalPriceInput, pricePerLiterInput, refuelingDateInput;
-    Button saveButton, captureButton;
+    Button saveButton, captureButton, recogniseButton;
     ImageView receiptImage;
+
+    TextView ocrResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +58,16 @@ public class AddActivity extends AppCompatActivity {
         receiptImage = findViewById(R.id.receiptImage);
         saveButton = findViewById(R.id.saveButton);
         captureButton = findViewById(R.id.captureButton);
+        recogniseButton = findViewById(R.id.recogniseButton);
+
+        ocrResult = findViewById(R.id.ocrResult);
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Bitmap bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
                 ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArray);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 30, byteArray);
                 byte[] img = byteArray.toByteArray();
 
                 DatabaseHelper databaseHelper = new DatabaseHelper(AddActivity.this);
@@ -68,6 +78,17 @@ public class AddActivity extends AppCompatActivity {
                                             img
                 );
                 finish();
+            }
+        });
+
+        recogniseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Bitmap bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
+                ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArray);
+
+                getDataFromImage(bitmap);
             }
         });
 
@@ -117,5 +138,25 @@ public class AddActivity extends AppCompatActivity {
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void getDataFromImage(Bitmap bitmap) {
+        TextRecognizer textRecognizer = new TextRecognizer.Builder(this).build();
+
+        if (!textRecognizer.isOperational()) {
+            Toast.makeText(this, "Some error occurred.", Toast.LENGTH_SHORT).show();
+        } else {
+            Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+            SparseArray<TextBlock> textBlockSparseArray = textRecognizer.detect(frame);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            for (int i = 0; i < textBlockSparseArray.size(); i++) {
+                TextBlock textBlock = textBlockSparseArray.valueAt(i);
+                stringBuilder.append(textBlock.getValue());
+                stringBuilder.append("\n");
+            }
+
+            ocrResult.setText(stringBuilder.toString());
+        }
     }
 }

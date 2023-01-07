@@ -25,7 +25,8 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
 
     private Context context;
     private Activity activity;
-    private ArrayList _id, fuel_amount, total_price, price_per_liter, date, image;
+    private ArrayList _id, fuel_amount, total_price, price_per_liter, date;
+    private ArrayList<byte[]> image;
 
     Animation translate_anim;
 
@@ -36,7 +37,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
                   ArrayList total_price,
                   ArrayList price_per_liter,
                   ArrayList date,
-                  ArrayList image
+                  ArrayList<byte[]> image
     ){
         this.activity = activity;
         this.context = context;
@@ -73,7 +74,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
                 intent.putExtra("refuelingDate", String.valueOf(date.get(position)));
 
                 Bundle bundle = new Bundle();
-                bundle.putByteArray("receiptImage", (byte[]) image.get(position));
+                bundle.putByteArray("receiptImage", image.get(position));
                 intent.putExtras(bundle);
 
                 activity.startActivityForResult(intent, 1);

@@ -5,13 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
-
-import java.io.ByteArrayOutputStream;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -56,12 +53,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
-//        Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
-//        Bitmap resized = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth()*0.3), (int)(bitmap.getHeight()*0.3), true);
-//        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-//        resized.compress(Bitmap.CompressFormat.PNG, 100, stream);
-//        image = stream.toByteArray();
-
         contentValues.put(COLUMN_FUEL_AMOUNT, fuelAmount);
         contentValues.put(COLUMN_TOTAL_PRICE, totalPrice);
         contentValues.put(COLUMN_PRICE_PER_LITER, pricePerLiter);
@@ -71,9 +62,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         long result = sqLiteDatabase.insert(TABLE_NAME, null, contentValues);
 
         if (result == -1) {
-            Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Failed to add refueling.", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(context, "Refueling added successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Refueling added successfully.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -83,7 +74,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         long result = sqLiteDatabase.delete(TABLE_NAME, "_id=?", new String[]{row_id});
 
         if (result == -1) {
-            Toast.makeText(context, "Failed to delete position.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Failed to delete refueling.", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
         }

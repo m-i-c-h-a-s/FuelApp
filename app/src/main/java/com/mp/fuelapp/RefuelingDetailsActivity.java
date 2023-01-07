@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -64,7 +65,6 @@ public class RefuelingDetailsActivity extends AppCompatActivity {
             pricePerLiterValue.setText(pricePerLiter + "zł/L");
             dateValue.setText(refuelingDate);
             receiptImageDetail.setImageBitmap(image);
-
         } else {
             Toast.makeText(this, "No data.", Toast.LENGTH_SHORT).show();
         }
