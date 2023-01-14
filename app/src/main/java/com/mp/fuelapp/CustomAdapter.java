@@ -15,7 +15,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHolder> {
@@ -59,8 +59,9 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.MyViewHold
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, final int position) {
-        holder.refuelingPrice.setText(String.valueOf(total_price.get(position)) + CURRENCY);
-        holder.refuelingFuelAmount.setText(String.valueOf(fuel_amount.get(position)) + VOLUME_UNIT);
+        DecimalFormat dcf = new DecimalFormat("000.00");
+        holder.refuelingPrice.setText(total_price.get(position) + CURRENCY);
+        holder.refuelingFuelAmount.setText(fuel_amount.get(position) + VOLUME_UNIT);
         holder.refuelingDate.setText(String.valueOf(date.get(position)));
 
         holder.mainLayout.setOnClickListener(new View.OnClickListener() {

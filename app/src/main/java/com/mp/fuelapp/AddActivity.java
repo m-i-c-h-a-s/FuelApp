@@ -13,20 +13,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.telephony.PhoneNumberFormattingTextWatcher;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.vision.Frame;
@@ -35,12 +33,9 @@ import com.google.android.gms.vision.text.TextRecognizer;
 import com.mp.fuelapp.db.DatabaseHelper;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Console;
 import java.io.File;
-import java.io.FileInputStream;
 import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,7 +51,6 @@ public class AddActivity extends AppCompatActivity {
     EditText fuelAmountInput, totalPriceInput, pricePerLiterInput, refuelingDateInput;
     Button saveButton, captureButton, recogniseButton;
     ImageView receiptImage;
-    TextView ocrResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +65,6 @@ public class AddActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.saveButton);
         captureButton = findViewById(R.id.captureButton);
         recogniseButton = findViewById(R.id.recogniseButton);
-        ocrResult = findViewById(R.id.ocrResult);
 
         refuelingDateInput.addTextChangedListener(dateTextWatcher);
 
@@ -86,7 +79,7 @@ public class AddActivity extends AppCompatActivity {
 
                 DatabaseHelper databaseHelper = new DatabaseHelper(AddActivity.this);
                 databaseHelper.addRefueling(Double.valueOf(fuelAmountInput.getText().toString().trim()),
-                                            Double.valueOf(totalPriceInput.getText().toString().trim()),
+                                            Double.valueOf(totalPriceInput.getText().toString()),
                                             Double.valueOf(pricePerLiterInput.getText().toString().trim()),
                                             refuelingDateInput.getText().toString().trim(),
                                             img
@@ -110,6 +103,7 @@ public class AddActivity extends AppCompatActivity {
         captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                receiptImage.getLayoutParams().height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 400, getResources().getDisplayMetrics());
                 askCameraPermission();
             }
         });
@@ -214,17 +208,15 @@ public class AddActivity extends AppCompatActivity {
                         amount = amountXPrice.substring(0, asteriskPosition);
                         price = amountXPrice.substring(asteriskPosition+1);
                         Double totalPrice = Double.parseDouble(amount) * Double.parseDouble(price);
-                        DecimalFormat dcf = new DecimalFormat("###.##");
+                        DecimalFormat dcf = new DecimalFormat("000.00");
 
                         fuelAmountInput.setText(amount.trim());
                         pricePerLiterInput.setText(price.trim());
-                        totalPriceInput.setText(dcf.format(totalPrice).toString().trim());
+                        totalPriceInput.setText(dcf.format(totalPrice));
                     }
                 }
 
             }
-
-            ocrResult.setText(stringBuilder.toString());
         }
     }
 

@@ -10,7 +10,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -26,7 +25,6 @@ import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.mp.fuelapp.db.DatabaseHelper;
-import com.mp.fuelapp.refueling.Refueling;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -129,9 +127,9 @@ public class MainActivity extends AppCompatActivity {
         } else {
             while (cursor.moveToNext()) {
                 _id.add(cursor.getString(0));
-                fuel_amount.add(cursor.getString(1));
-                total_price.add(cursor.getString(2));
-                price_per_liter.add(cursor.getString(3));
+                fuel_amount.add(String.format("%.2f", Double.parseDouble(cursor.getString(1))));
+                total_price.add(String.format("%.2f", Double.parseDouble(cursor.getString(2))));
+                price_per_liter.add(String.format("%.2f", Double.parseDouble(cursor.getString(3))));
                 date.add(cursor.getString(4));
                 image.add(cursor.getBlob(5));
             }
@@ -171,9 +169,6 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.main_activity_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
-
-
-
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
