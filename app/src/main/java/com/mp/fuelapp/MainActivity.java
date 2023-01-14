@@ -2,16 +2,18 @@ package com.mp.fuelapp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,19 +24,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 import com.mp.fuelapp.db.DatabaseHelper;
+import com.mp.fuelapp.refueling.Refueling;
 
 import java.io.ByteArrayOutputStream;
-import java.sql.Blob;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
+
+    public DrawerLayout drawerLayout;
+    public ActionBarDrawerToggle actionBarDrawerToggle;
+    NavigationView navigationView;
 
     RecyclerView recyclerView;
     FloatingActionButton addButton;
     ImageView noDataImageView;
     TextView noDataLabel;
+    TextView dataTextView;
 
     DatabaseHelper databaseHelper;
     ArrayList<String> _id, fuel_amount, total_price, price_per_liter, date;
@@ -45,18 +53,49 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
+        drawerLayout = findViewById(R.id.drawerLayout);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.nav_open, R.string.nav_close);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+
+
+        navigationView = findViewById(R.id.navigationView);
         recyclerView = findViewById(R.id.recyclerView);
         addButton = findViewById(R.id.addButton);
         noDataImageView = findViewById(R.id.noDataImageView);
         noDataLabel = findViewById(R.id.noDataLabel);
+        dataTextView = findViewById(R.id.dataTextView);
 
-        addButton.setOnClickListener(new View.OnClickListener() {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, AddActivity.class);
-                startActivityForResult(intent, 1);
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.openStatisticsItem:
+                        Intent intent = new Intent(MainActivity.this, StatisticsActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putStringArrayList("fuel_amount", fuel_amount);
+                        bundle.putStringArrayList("total_price", total_price);
+                        bundle.putStringArrayList("price_per_liter", price_per_liter);
+                        bundle.putStringArrayList("date", date);
+                        intent.putExtras(bundle);
+                        startActivityForResult(intent, 2);
+                        break;
+                    case R.id.deleteAllRefuelingsItem:
+                        confirmDialog();
+                        break;
+                    default:
+                        break;
+                }
+                return true;
             }
+        });
+
+        addButton.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, AddActivity.class);
+            startActivityForResult(intent, 1);
         });
 
         databaseHelper = new DatabaseHelper(MainActivity.this);
@@ -68,12 +107,10 @@ public class MainActivity extends AppCompatActivity {
         image = new ArrayList<>();
 
         loadDataToArrays();
-        reverseRefuelingsOrderChronologically(_id, fuel_amount, total_price, price_per_liter, date, image);
 
         customAdapter = new CustomAdapter(MainActivity.this, this, _id, fuel_amount, total_price, price_per_liter, date, image);
         recyclerView.setAdapter(customAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-
     }
 
     @Override
@@ -84,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void loadDataToArrays() {
+    private void loadDataToArrays() {
         Cursor cursor = databaseHelper.readAllData();
         if (cursor.getCount() == 0) {
             noDataImageView.setVisibility(View.VISIBLE);
@@ -103,16 +140,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void reverseRefuelingsOrderChronologically(ArrayList _id, ArrayList fuel_amount, ArrayList total_price, ArrayList price_per_liter, ArrayList date, ArrayList image) {
-        Collections.reverse(_id);
-        Collections.reverse(fuel_amount);
-        Collections.reverse(total_price);
-        Collections.reverse(price_per_liter);
-        Collections.reverse(date);
-        Collections.reverse(image);
-    }
-
-    void confirmDialog() {
+    private void confirmDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Confirm");
         builder.setMessage("Are you sure that you want to delete all refuelings?");
@@ -144,8 +172,15 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+
+
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
 
         switch(item.getItemId()) {
             case R.id.deleteAllRefuelingsButton:
@@ -159,6 +194,20 @@ public class MainActivity extends AppCompatActivity {
                 databaseHelper.addRefueling(54.5, 412.02, 7.56, "02-01-2023", img);
                 databaseHelper.addRefueling(21.5, 165.55, 7.70, "03-01-2023", img);
                 databaseHelper.addRefueling(11.2, 82.43,7.36, "04-01-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.33, "14-02-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.64, "24-02-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.23, "12-03-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.33, "24-03-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.66, "02-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.16, "12-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.26, "22-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,8.26, "23-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.28, "24-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.53, "25-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.26, "26-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.36, "27-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.26, "28-04-2023", img);
+                databaseHelper.addRefueling(11.2, 82.43,7.16, "29-04-2023", img);
                 this.recreate();
                 break;
             default:

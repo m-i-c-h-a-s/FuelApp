@@ -1,13 +1,18 @@
 package com.mp.fuelapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -20,7 +25,6 @@ public class RefuelingDetailsActivity extends AppCompatActivity {
 
     TextView fuelAmountValue, totalPriceValue, pricePerLiterValue, dateValue;
     ImageView receiptImageDetail;
-    Button deleteRefuelingButton;
 
     String id, fuelAmount, totalPrice, pricePerLiter, refuelingDate;
     byte[] receiptImage;
@@ -34,17 +38,9 @@ public class RefuelingDetailsActivity extends AppCompatActivity {
         totalPriceValue = findViewById(R.id.totalPriceValue);
         pricePerLiterValue = findViewById(R.id.pricePerLiterValue);
         dateValue = findViewById(R.id.dateValue);
-        deleteRefuelingButton = findViewById(R.id.deleteRefuelingButton);
         receiptImageDetail = findViewById(R.id.receiptImageDetail);
 
         getIntentData();
-
-        deleteRefuelingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                confirmDialog();
-            }
-        });
     }
 
     void getIntentData() {
@@ -90,4 +86,25 @@ public class RefuelingDetailsActivity extends AppCompatActivity {
         });
         builder.create().show();
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.refueling_details_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.deleteRefuelingButton:
+                confirmDialog();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
 }

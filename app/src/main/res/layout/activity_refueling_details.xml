@@ -9,16 +9,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingVertical="30dp"
-        android:paddingHorizontal="10dp"
-        tools:context=".RefuelingDetailsActivity">
+        android:paddingHorizontal="10dp">
 
         <TextView
             android:id="@+id/fuelAmountLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
+            android:layout_marginStart="8dp"
             android:text="Fuel amount:"
-            android:textColor="@color/black"
+            android:textColor="@color/red_1"
             android:textSize="25sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -28,7 +27,7 @@
             android:id="@+id/fuelAmountValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
+            android:layout_marginEnd="8dp"
             android:text="50L"
             android:textSize="25sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -38,13 +37,12 @@
             android:id="@+id/totalPriceLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
             android:layout_marginTop="24dp"
             android:text="Total price:"
+            android:textColor="@color/red_1"
             android:textSize="25sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/fuelAmountLabel"
             app:layout_constraintTop_toBottomOf="@+id/fuelAmountLabel" />
 
         <TextView
@@ -52,23 +50,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:layout_marginEnd="24dp"
             android:text="399zł"
             android:textSize="25sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/fuelAmountValue"
             app:layout_constraintTop_toBottomOf="@+id/fuelAmountValue" />
 
         <TextView
             android:id="@+id/pricePerLiterLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
             android:layout_marginTop="24dp"
             android:text="Price per liter:"
+            android:textColor="@color/red_1"
             android:textSize="25sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/totalPriceLabel"
             app:layout_constraintTop_toBottomOf="@+id/totalPriceLabel" />
 
         <TextView
@@ -76,23 +72,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:layout_marginEnd="20dp"
             android:text="7.5zł"
             android:textSize="25sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/totalPriceValue"
             app:layout_constraintTop_toBottomOf="@+id/totalPriceValue" />
 
         <TextView
             android:id="@+id/dateLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
             android:layout_marginTop="24dp"
             android:text="Refueling date:"
+            android:textColor="@color/red_1"
             android:textSize="25sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/pricePerLiterLabel"
             app:layout_constraintTop_toBottomOf="@+id/pricePerLiterLabel" />
 
         <TextView
@@ -100,33 +94,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:layout_marginEnd="16dp"
             android:text="01-01-2023"
             android:textSize="25sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/pricePerLiterValue"
             app:layout_constraintTop_toBottomOf="@+id/pricePerLiterValue" />
 
         <ImageView
             android:id="@+id/receiptImageDetail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="32dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/dateLabel"
-            app:srcCompat="@drawable/ic_fuel"
+            android:layout_marginEnd="8dp"
             android:adjustViewBounds="true"
-            />
-
-        <Button
-            android:id="@+id/deleteRefuelingButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="Delete refueling"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/receiptImageDetail" />
+            app:layout_constraintEnd_toEndOf="@+id/dateValue"
+            app:layout_constraintStart_toStartOf="@+id/dateLabel"
+            app:layout_constraintTop_toBottomOf="@+id/dateLabel"
+            app:srcCompat="@drawable/ic_fuel" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

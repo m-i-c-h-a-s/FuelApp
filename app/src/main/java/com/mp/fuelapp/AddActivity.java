@@ -5,17 +5,22 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.BitmapCompat;
 
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.telephony.PhoneNumberFormattingTextWatcher;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
@@ -31,19 +36,26 @@ import com.mp.fuelapp.db.DatabaseHelper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Console;
+import java.io.File;
 import java.io.FileInputStream;
+import java.text.DecimalFormat;
+import java.util.Calendar;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AddActivity extends AppCompatActivity {
-
     public static final int CAMERA_PERMISSION_CODE = 101;
     public static final int CAMERA_REQUEST_CODE = 102;
 
-    Uri image_uri;
+    public static final String DATE_REGEX = "[0-9]{2}-[0-9]{2}-[0-9]{4}";
+    public static final String AMOUNT_X_PRICE_REGEX = "[1-9]{1}[0-9]{0,2}\\.[0-9]{2}[*,+,%,x,X][1-9]\\.[0-9]{2}";
 
+    Uri image_uri;
+    Bitmap bitmap;
     EditText fuelAmountInput, totalPriceInput, pricePerLiterInput, refuelingDateInput;
     Button saveButton, captureButton, recogniseButton;
     ImageView receiptImage;
-
     TextView ocrResult;
 
     @Override
@@ -59,15 +71,17 @@ public class AddActivity extends AppCompatActivity {
         saveButton = findViewById(R.id.saveButton);
         captureButton = findViewById(R.id.captureButton);
         recogniseButton = findViewById(R.id.recogniseButton);
-
         ocrResult = findViewById(R.id.ocrResult);
+
+        refuelingDateInput.addTextChangedListener(dateTextWatcher);
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Bitmap bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
+                bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
                 ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 30, byteArray);
+
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 15, byteArray);
                 byte[] img = byteArray.toByteArray();
 
                 DatabaseHelper databaseHelper = new DatabaseHelper(AddActivity.this);
@@ -84,11 +98,12 @@ public class AddActivity extends AppCompatActivity {
         recogniseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Bitmap bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
-                ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArray);
-
-                getDataFromImage(bitmap);
+                try {
+                    bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
+                    getDataFromImage(bitmap);
+                } catch (Exception e) {
+                    Toast.makeText(AddActivity.this, "Cannot recognise text.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -98,7 +113,10 @@ public class AddActivity extends AppCompatActivity {
                 askCameraPermission();
             }
         });
+
     }
+
+
 
     private void askCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -135,9 +153,29 @@ public class AddActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == CAMERA_REQUEST_CODE) {
             receiptImage.setImageURI(image_uri);
+
+            File fdelete = new File(getFilePath(image_uri));
+            if (fdelete.exists()) {
+                fdelete.delete();
+            }
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private byte[] compressBitmapToProperSize(Bitmap bitmap) {
+        ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+        int bitmapByteCount = BitmapCompat.getAllocationByteCount(bitmap);
+        int quality = 90;
+
+        do {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArray);
+            quality =- 10;
+            bitmapByteCount = BitmapCompat.getAllocationByteCount(bitmap);
+            Toast.makeText(AddActivity.this, Integer.toString(bitmapByteCount), Toast.LENGTH_LONG).show();
+        } while (bitmapByteCount > 480000);
+
+        return byteArray.toByteArray();
     }
 
     private void getDataFromImage(Bitmap bitmap) {
@@ -154,9 +192,117 @@ public class AddActivity extends AppCompatActivity {
                 TextBlock textBlock = textBlockSparseArray.valueAt(i);
                 stringBuilder.append(textBlock.getValue());
                 stringBuilder.append("\n");
+
+                String date = findDataByRegex(textBlock.getValue(), DATE_REGEX);
+                if (date != "") {
+                    refuelingDateInput.setText(date.trim());
+                }
+
+                String amountXPrice = findDataByRegex(textBlock.getValue(), AMOUNT_X_PRICE_REGEX);
+                if (amountXPrice != "") {
+                    int asteriskPosition = amountXPrice.indexOf("*");
+                    if (asteriskPosition == -1)
+                        asteriskPosition = amountXPrice.indexOf("%");
+                    else if (asteriskPosition == -1)
+                        asteriskPosition = amountXPrice.indexOf("x");
+                    else if (asteriskPosition == -1)
+                        asteriskPosition = amountXPrice.indexOf("+");
+
+                    String amount, price;
+
+                    if (asteriskPosition != -1) {
+                        amount = amountXPrice.substring(0, asteriskPosition);
+                        price = amountXPrice.substring(asteriskPosition+1);
+                        Double totalPrice = Double.parseDouble(amount) * Double.parseDouble(price);
+                        DecimalFormat dcf = new DecimalFormat("###.##");
+
+                        fuelAmountInput.setText(amount.trim());
+                        pricePerLiterInput.setText(price.trim());
+                        totalPriceInput.setText(dcf.format(totalPrice).toString().trim());
+                    }
+                }
+
             }
 
             ocrResult.setText(stringBuilder.toString());
         }
+    }
+
+    private String findDataByRegex(String input, String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.find()) {
+            String result = matcher.group();
+            return result;
+        } else return "";
+    }
+
+    TextWatcher dateTextWatcher = new TextWatcher() {
+        private String current = "";
+        private String ddmmyyyy = "DDMMYYYY";
+        private Calendar cal = Calendar.getInstance();
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (!s.toString().equals(current)) {
+                String clean = s.toString().replaceAll("[^\\d.]|\\.", "");
+                String cleanC = current.replaceAll("[^\\d.]|\\.", "");
+
+                int cl = clean.length();
+                int sel = cl;
+                for (int i = 2; i <= cl && i < 6; i += 2) {
+                    sel++;
+                }
+
+                if (clean.equals(cleanC)) sel--;
+
+                if (clean.length() < 8) {
+                    clean = clean + ddmmyyyy.substring(clean.length());
+                } else {
+                    int day  = Integer.parseInt(clean.substring(0,2));
+                    int mon  = Integer.parseInt(clean.substring(2,4));
+                    int year = Integer.parseInt(clean.substring(4,8));
+
+                    mon = mon < 1 ? 1 : mon > 12 ? 12 : mon;
+                    cal.set(Calendar.MONTH, mon-1);
+                    year = (year<1900)?1900:(year>2100)?2100:year;
+                    cal.set(Calendar.YEAR, year);
+
+                    day = (day > cal.getActualMaximum(Calendar.DATE))? cal.getActualMaximum(Calendar.DATE):day;
+                    clean = String.format("%02d%02d%02d",day, mon, year);
+                }
+
+                clean = String.format("%s-%s-%s", clean.substring(0, 2),
+                        clean.substring(2, 4),
+                        clean.substring(4, 8));
+
+                sel = sel < 0 ? 0 : sel;
+                current = clean;
+                refuelingDateInput.setText(current);
+                refuelingDateInput.setSelection(sel < current.length() ? sel : current.length());
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {}
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    };
+
+    private String getFilePath(Uri uri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+
+            int columnIndex = cursor.getColumnIndex(projection[0]);
+            String picturePath = cursor.getString(columnIndex); // returns null
+            cursor.close();
+            return picturePath;
+        }
+        return null;
     }
 }

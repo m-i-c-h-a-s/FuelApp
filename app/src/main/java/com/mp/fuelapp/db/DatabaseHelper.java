@@ -86,7 +86,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public Cursor readAllData() {
-        String query = "SELECT * FROM  " + TABLE_NAME;
+        String query = "SELECT * FROM  " + TABLE_NAME + " ORDER BY " + COLUMN_ID + " DESC;";
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
 
         Cursor cursor = null;
