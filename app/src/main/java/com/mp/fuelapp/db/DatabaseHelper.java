@@ -64,7 +64,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (result == -1) {
             Toast.makeText(context, "Failed to add refueling.", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(context, "Refueling added successfully.", Toast.LENGTH_SHORT).show();
+            if (image.length != 0) {
+                Toast.makeText(context, "Refueling added successfully.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

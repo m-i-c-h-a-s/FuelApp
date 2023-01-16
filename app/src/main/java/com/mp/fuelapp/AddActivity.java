@@ -71,32 +71,34 @@ public class AddActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
-                ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
 
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 15, byteArray);
-                byte[] img = byteArray.toByteArray();
+                if (!fuelAmountInput.getText().toString().isEmpty() && !totalPriceInput.getText().toString().isEmpty()
+                    && !pricePerLiterInput.getText().toString().isEmpty() && !refuelingDateInput.getText().toString().isEmpty()) {
 
-                DatabaseHelper databaseHelper = new DatabaseHelper(AddActivity.this);
-                databaseHelper.addRefueling(Double.valueOf(fuelAmountInput.getText().toString().trim()),
-                                            Double.valueOf(totalPriceInput.getText().toString()),
-                                            Double.valueOf(pricePerLiterInput.getText().toString().trim()),
-                                            refuelingDateInput.getText().toString().trim(),
-                                            img
-                );
-                finish();
+                    bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
+                    ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 15, byteArray);
+                    byte[] img = byteArray.toByteArray();
+
+                    DatabaseHelper databaseHelper = new DatabaseHelper(AddActivity.this);
+                    databaseHelper.addRefueling(Double.valueOf(fuelAmountInput.getText().toString().trim()),
+                            Double.valueOf(totalPriceInput.getText().toString()),
+                            Double.valueOf(pricePerLiterInput.getText().toString().trim()),
+                            refuelingDateInput.getText().toString().trim(),
+                            img
+                    );
+                    finish();
+                } else {
+                    Toast.makeText(AddActivity.this, "Enter the correct data.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
         recogniseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
-                    getDataFromImage(bitmap);
-                } catch (Exception e) {
-                    Toast.makeText(AddActivity.this, "Cannot recognise text.", Toast.LENGTH_SHORT).show();
-                }
+                recogniseText();
             }
         });
 
@@ -146,30 +148,15 @@ public class AddActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == CAMERA_REQUEST_CODE) {
-            receiptImage.setImageURI(image_uri);
-
             File fdelete = new File(getFilePath(image_uri));
             if (fdelete.exists()) {
+                receiptImage.setImageURI(image_uri);
+                recogniseText();
                 fdelete.delete();
             }
         }
 
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private byte[] compressBitmapToProperSize(Bitmap bitmap) {
-        ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-        int bitmapByteCount = BitmapCompat.getAllocationByteCount(bitmap);
-        int quality = 90;
-
-        do {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArray);
-            quality =- 10;
-            bitmapByteCount = BitmapCompat.getAllocationByteCount(bitmap);
-            Toast.makeText(AddActivity.this, Integer.toString(bitmapByteCount), Toast.LENGTH_LONG).show();
-        } while (bitmapByteCount > 480000);
-
-        return byteArray.toByteArray();
     }
 
     private void getDataFromImage(Bitmap bitmap) {
@@ -202,9 +189,8 @@ public class AddActivity extends AppCompatActivity {
                     else if (asteriskPosition == -1)
                         asteriskPosition = amountXPrice.indexOf("+");
 
-                    String amount, price;
-
                     if (asteriskPosition != -1) {
+                        String amount, price;
                         amount = amountXPrice.substring(0, asteriskPosition);
                         price = amountXPrice.substring(asteriskPosition+1);
                         Double totalPrice = Double.parseDouble(amount) * Double.parseDouble(price);
@@ -228,6 +214,30 @@ public class AddActivity extends AppCompatActivity {
             String result = matcher.group();
             return result;
         } else return "";
+    }
+
+    private void recogniseText() {
+        try {
+            bitmap = ((BitmapDrawable) receiptImage.getDrawable()).getBitmap();
+            getDataFromImage(bitmap);
+        } catch (Exception e) {
+            Toast.makeText(AddActivity.this, "Cannot recognise text.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String getFilePath(Uri uri) {
+        String[] projection = {MediaStore.Images.Media.DATA};
+
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+
+            int columnIndex = cursor.getColumnIndex(projection[0]);
+            String picturePath = cursor.getString(columnIndex); // returns null
+            cursor.close();
+            return picturePath;
+        }
+        return null;
     }
 
     TextWatcher dateTextWatcher = new TextWatcher() {
@@ -282,19 +292,4 @@ public class AddActivity extends AppCompatActivity {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
     };
-
-    private String getFilePath(Uri uri) {
-        String[] projection = {MediaStore.Images.Media.DATA};
-
-        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
-        if (cursor != null) {
-            cursor.moveToFirst();
-
-            int columnIndex = cursor.getColumnIndex(projection[0]);
-            String picturePath = cursor.getString(columnIndex); // returns null
-            cursor.close();
-            return picturePath;
-        }
-        return null;
-    }
 }

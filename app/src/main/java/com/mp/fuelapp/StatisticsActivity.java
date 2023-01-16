@@ -18,6 +18,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class StatisticsActivity extends AppCompatActivity {
 
@@ -60,6 +61,10 @@ public class StatisticsActivity extends AppCompatActivity {
             price_per_liter = bundle.getStringArrayList("price_per_liter");
             date = bundle.getStringArrayList("date");
         }
+        Collections.reverse(fuel_amount);
+        Collections.reverse(total_price);
+        Collections.reverse(price_per_liter);
+        Collections.reverse(date);
     }
 
     private void generateStatistics(LocalDate currentDate) {
